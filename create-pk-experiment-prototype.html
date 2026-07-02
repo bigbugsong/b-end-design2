@@ -50,6 +50,7 @@
     --warning-1: #FFF6E3;
     --error-6:   #E2283A;
     --error-5:   #F6445D;
+    --error-4:   #FF5C66;
     --error-1:   #FFF0F0;
     --data-increase: #F85C72; /* 数据上涨 */
     --data-decrease: #21A663; /* 数据下降 */
@@ -111,6 +112,8 @@
   .btn--primary:active { background: var(--brand-7); }
   .btn--default { background: var(--white); color: var(--text-6); border-color: var(--line-3); }
   .btn--default:hover { color: var(--brand-6); border-color: var(--brand-5); }
+  .btn--danger-hover:hover { color: var(--error-4); border-color: var(--error-4); }
+  .btn--danger-hover:active { color: var(--error-6); border-color: var(--error-6); }
   .btn--filled { background: var(--fill-2); color: var(--text-6); }
   .btn--filled:hover { background: var(--fill-3); }
   .btn--text { background: transparent; color: var(--brand-6); padding: 0 4px; }
@@ -812,12 +815,12 @@
         </div>
       </div>
 
-      <!-- [弹窗底部] dialog-footer —— 仅「通过检测」后出现 -->
-      <div class="dialog-footer" id="dialogFooter" hidden>
+      <!-- [弹窗底部] dialog-footer：检测前/失败态保留取消；通过后显示创建 -->
+      <div class="dialog-footer" id="dialogFooter">
         <!-- 交互：取消→关闭弹窗 -->
         <button class="btn btn--default" id="btnCancel">取消</button>
         <!-- 交互：创建→提交中→成功页 / 失败 toast（按 demo 设定） -->
-        <button class="btn btn--primary" id="btnCreate">创建</button>
+        <button class="btn btn--primary" id="btnCreate" hidden>创建</button>
       </div>
     </div>
 
@@ -898,7 +901,7 @@
           <!-- 交互：提报商品 / 调整预算 / 终止实验（原型占位提示） -->
           <button class="btn btn--outline-brand" id="btnPkReport">提报商品</button>
           <button class="btn btn--outline-brand" id="btnPkBudget">调整预算</button>
-          <button class="btn btn--default" id="btnPkStop">终止实验</button>
+          <button class="btn btn--default btn--danger-hover" id="btnPkStop">终止实验</button>
         </div>
       </div>
 
@@ -1192,7 +1195,8 @@
     btn.innerHTML = '检测是否符合条件';
 
     $('detectResultText').hidden = true;
-    $('dialogFooter').hidden = true;
+    $('dialogFooter').hidden = false;
+    $('btnCreate').hidden = true;
     $('conclusion').hidden = true;
 
     // 条件项复位为中性灰勾、隐藏附加说明
@@ -1212,7 +1216,8 @@
     var btn = $('btnDetect');
     setBtnLoading(btn, true, '检测中');
     $('detectResultText').hidden = true;
-    $('dialogFooter').hidden = true;
+    $('dialogFooter').hidden = false;
+    $('btnCreate').hidden = true;
     $('conclusion').hidden = true;
 
     var items = Array.prototype.slice.call(document.querySelectorAll('.condition-item'));
@@ -1261,7 +1266,8 @@
       btn.outerHTML = '<span class="btn-pass" id="btnDetect">✓ 已通过检测</span>';
       conclusion.hidden = false;
       conclusion.textContent = '您的品牌已满足所有创建实验条件，立即创建智能优化实验效果，眼见为实！';
-      $('dialogFooter').hidden = false; // 出现 取消 / 创建
+      $('dialogFooter').hidden = false;
+      $('btnCreate').hidden = false; // 出现 取消 / 创建
     } else {
       // 失败态：按钮变“重新检测”，无创建按钮
       btn.className = 'btn btn--primary';
@@ -1269,7 +1275,8 @@
       btn.innerHTML = '重新检测是否符合条件';
       conclusion.hidden = false;
       conclusion.textContent = '你的品牌暂不满足实验条件，请调整后重新检测';
-      $('dialogFooter').hidden = true;
+      $('dialogFooter').hidden = false;
+      $('btnCreate').hidden = true;
     }
     bindDetectBtn(); // 重新绑定（outerHTML 会替换节点）
   }
