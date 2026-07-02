@@ -402,7 +402,17 @@
   /* 标题栏 48px（无分割线） */
   .drawer-header { flex: none; height: 48px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
   .drawer-header .title { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--text-6); }
-  .drawer-close { width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-4); font-size: 16px; }
+  .drawer-close {
+    width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-4); font-size: 0; position: relative;
+  }
+  .drawer-close::before,
+  .drawer-close::after {
+    content: ""; width: 14px; height: 1.5px; border-radius: 1px; background: currentColor;
+    position: absolute; left: 5px; top: 11px;
+  }
+  .drawer-close::before { transform: rotate(45deg); }
+  .drawer-close::after { transform: rotate(-45deg); }
   .drawer-close:hover { background: var(--fill-2); color: var(--text-6); }
 
   /* 选择实验行 52px：左=选择实验下拉，右=创建PK实验(仅已结束态)；底部内缩24分割线 */
@@ -465,11 +475,14 @@
   .pk-table .diff .row-label { color: var(--text-6); font-weight: 600; }
 
   /* 未开始空状态 */
-  .pk-empty { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 24px; }
+  .pk-empty {
+    display: none; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    min-height: 476px; width: 100%; text-align: center; padding: 0 24px;
+  }
   .pk-empty.is-show { display: flex; }
-  .pk-empty .illus { width: 120px; height: 120px; border-radius: 20px; background: linear-gradient(135deg, var(--brand-2), var(--brand-1)); display: flex; align-items: center; justify-content: center; color: var(--brand-6); font-size: 12px; margin-bottom: 24px; }
-  .pk-empty .e-main { font-size: 14px; color: var(--text-6); margin-bottom: 8px; }
-  .pk-empty .e-sub { font-size: 13px; color: var(--text-4); }
+  .pk-empty .illus { width: 119px; height: 135px; flex: none; display: block; margin: 0; }
+  .pk-empty .e-main { font-size: 14px; line-height: 22px; color: var(--text-6); margin: 0; white-space: nowrap; }
+  .pk-empty .e-sub { font-size: 12px; line-height: 18px; color: var(--text-5); margin: 0; white-space: nowrap; }
   .pk-data { display: none; }
   .pk-data.is-show { display: block; }
 
@@ -879,8 +892,7 @@
 
       <!-- 未开始：空状态 -->
       <div class="pk-empty" id="pkEmpty">
-        <!-- 替换位置：等待中插画 -->
-        <div class="illus">插画占位</div>
+        <img class="illus" src="images/other/image-zhanwei.png" alt="" />
         <div class="e-main">请耐心等待实验开始，实验1天后可查看效果数据</div>
         <div class="e-sub">当前仍可以 <span class="link">提报更多商品</span> 商品越多数据越准</div>
       </div>
