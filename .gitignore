@@ -1,0 +1,15 @@
+.DS_Store
+**/.DS_Store
+
+.claude/
+
+*.log
+*.tmp
+*.temp
+
+.env
+.env.*
+
+node_modules/
+dist/
+build/

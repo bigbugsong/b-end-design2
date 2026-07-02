@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>创建 PK 实验流程 · 高保真交互原型</title>
+<!--
+  说明：本文件为「设计评审 / 交互验证 / 前端理解需求」用的高保真交互原型，
+  非生产代码、非前端工程。无任何框架/CDN 依赖，单文件可直接双击打开。
+  视觉遵循【唯品会 B 端设计系统 V2.0】(design.md) 的 Token。
+-->
+<style>
+  /* ============================================================
+     [设计 Token] 用 CSS 变量承接 design.md 设计系统 Token
+     ============================================================ */
+  :root {
+    /* 品牌色 */
+    --brand-7: #484CB8;   /* pressed / active */
+    --brand-6: #5765DE;   /* primary 常规 */
+    --brand-5: #797EF5;   /* hover */
+    --brand-2: #BDC3FF;
+    --brand-1: #F0F1FF;   /* 浅色背景 */
+
+    /* 中性 & 背景 */
+    --white:   #FFFFFF;
+    --bg:      #F5F7F9;   /* 页面背景 */
+    --fill-2:  #F3F4F5;   /* default 填充 / 禁用底 */
+    --fill-3:  #E2E2E2;
+    --row-hover: rgba(34,34,34,.05);
+    --mask:    rgba(0,0,0,.5);
+
+    /* 文本 */
+    --text-6: #222222;    /* 主要内容/标题 */
+    --text-5: #585C64;    /* 次要内容/说明 */
+    --text-4: #858B94;    /* 辅助提示 */
+    --text-3: #B3B6BC;    /* placeholder */
+    --text-2: #CACCD2;    /* 禁用文字 */
+    --text-1: #FFFFFF;    /* 反白 */
+
+    /* 线条 */
+    --line-3: #D3D6DA;    /* 边框 */
+    --line-2: #E7E7E7;    /* 分割线 */
+    --line-1: #EEEEEE;
+
+    /* 状态色 */
+    --success-6: #1C8C54;
+    --success-5: #21A663;
+    --success-1: #E9F9F1;
+    --warning-5: #FF7A1A;
+    --warning-1: #FFF6E3;
+    --error-6:   #E2283A;
+    --error-5:   #F6445D;
+    --error-1:   #FFF0F0;
+    --data-increase: #F85C72; /* 数据上涨 */
+    --data-decrease: #21A663; /* 数据下降 */
+
+    /* 圆角 */
+    --radius-card: 8px;   /* 卡片/弹窗 */
+    --radius-ctrl: 4px;   /* 按钮/输入/选择 */
+    --radius-full: 9999px;/* 标签/胶囊 */
+
+    /* 阴影 */
+    --shadow-base:  0 2px 4px rgba(211,211,211,.5);
+    --shadow-mid:   0 4px 12px rgba(0,0,0,.1);
+    --shadow-upper: 0 4px 24px rgba(0,0,0,.1);
+
+    /* 字体栈 */
+    --font: "PingFang SC","Microsoft YaHei","微软雅黑","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* 让 hidden 属性优先级高于组件自身的 display（避免 flex/inline-flex 覆盖 hidden） */
+  [hidden] { display: none !important; }
+
+  html, body {
+    font-family: var(--font);
+    color: var(--text-6);
+    background: var(--bg);
+    font-size: 14px;
+    line-height: 22px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- 通用文本工具 ---- */
+  .t-title-1 { font-size: 20px; line-height: 28px; font-weight: 600; }
+  .t-title-2 { font-size: 18px; line-height: 26px; font-weight: 600; }
+  .t-title-3 { font-size: 16px; line-height: 24px; font-weight: 600; }
+  .t-small   { font-size: 12px; line-height: 18px; }
+  .t-sub     { color: var(--text-5); }
+  .t-hint    { color: var(--text-4); }
+  .link { color: var(--brand-6); cursor: pointer; }
+  .link:hover { color: var(--brand-5); }
+  .link--danger { color: var(--error-5); }
+  .link--danger:hover { color: var(--error-4); }
+
+  /* ============================================================
+     [按钮] 复用 design.md 按钮规范（primary/default/text/small/loading）
+     ============================================================ */
+  .btn {
+    height: 32px; padding: 0 16px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border-radius: var(--radius-ctrl);
+    border: 1px solid transparent;
+    font-family: var(--font); font-size: 14px; line-height: 22px;
+    cursor: pointer; user-select: none; white-space: nowrap;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .btn--primary { background: var(--brand-6); color: var(--text-1); }
+  .btn--primary:hover { background: var(--brand-5); }
+  .btn--primary:active { background: var(--brand-7); }
+  .btn--default { background: var(--white); color: var(--text-6); border-color: var(--line-3); }
+  .btn--default:hover { color: var(--brand-6); border-color: var(--brand-5); }
+  .btn--filled { background: var(--fill-2); color: var(--text-6); }
+  .btn--filled:hover { background: var(--fill-3); }
+  .btn--text { background: transparent; color: var(--brand-6); padding: 0 4px; }
+  .btn--text:hover { color: var(--brand-5); }
+  .btn--small { height: 24px; padding: 0 8px; font-size: 12px; line-height: 18px; gap: 4px; }
+  /* 禁用态 */
+  .btn:disabled, .btn.is-disabled {
+    background: var(--fill-2); color: var(--text-2);
+    border-color: transparent; cursor: not-allowed;
+  }
+  .btn--default:disabled, .btn--default.is-disabled { background: var(--white); border-color: var(--line-3); }
+
+  /* loading 转圈图标（前置，防重复提交） */
+  .spinner {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid currentColor; border-top-color: transparent;
+    display: inline-block; animation: spin .7s linear infinite;
+    flex: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 占位块：logo / 头像 / 图标 / 插画。<!-- 替换位置：接入真实素材时替换 --> */
+  .placeholder { background: rgba(255,255,255,.25); border-radius: 4px; display: inline-block; }
+  .icon-box { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+
+  /* ============================================================
+     [顶部导航] app-topbar：品牌条 + 一级导航
+     ============================================================ */
+  /* 头部背景：横向渐变 #686ee8 → #8268e8（还原 Figma 头部节点 8043-10702）；总高 112，pt16/pb12/px24 */
+  /* 向上/向下滚动时页头吸顶悬停（z-index 低于弹窗遮罩 100、高于内容） */
+  .app-topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(90deg, #686ee8 0%, #8268e8 100%); color: var(--text-1);
+    height: 112px; padding: 16px 24px 12px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .topbar-brand { display: flex; align-items: center; justify-content: space-between; }
+  .brand-logo { display: flex; align-items: center; gap: 9px; font-size: 22px; font-weight: 700; }
+  .brand-logo .placeholder { width: 30px; height: 29px; background: rgba(255,255,255,.9); border-radius: 6px; }
+  .topbar-right { display: flex; align-items: center; gap: 18px; font-size: 14px; }
+  .topbar-right .cell { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+  .topbar-right .cell:hover { opacity: .85; }
+  /* 小图标占位（替换位置：接入线性图标） */
+  .cell-icon { width: 16px; height: 16px; background: rgba(255,255,255,.85); border-radius: 3px; display: inline-block; }
+  /* 消息中心红点角标 */
+  .cell--badge { position: relative; }
+  .cell--badge::after { content: ""; position: absolute; top: -2px; left: 12px; width: 6px; height: 6px; border-radius: 50%; background: var(--error-5); }
+  /* Admin 前的白色竖分割线 */
+  .topbar-divider { width: 1px; height: 15px; background: #fff; opacity: .6; }
+  .avatar { width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.85); display: inline-block; }
+
+  .topbar-nav { display: flex; align-items: flex-end; gap: 40px; }
+  .nav-item { position: relative; padding-bottom: 8px; font-size: 16px; line-height: 24px; color: #fff; cursor: pointer; }
+  .nav-item:hover { opacity: .85; }
+  .nav-item.is-active { font-weight: 700; }
+  .nav-item.is-active::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #fff;
+  }
+
+  /* ============================================================
+     [主体框架] 左侧栏 + 内容区
+     ============================================================ */
+  .app-body { display: flex; min-height: calc(100vh - 112px); }
+
+  .app-sidebar { width: 200px; flex: none; background: var(--white); border-right: 1px solid var(--line-2); padding: 12px 0; }
+  .side-group { padding: 6px 0; }
+  .side-group-title {
+    height: 40px; padding: 0 20px; display: flex; align-items: center; gap: 8px;
+    color: var(--text-6); cursor: pointer;
+  }
+  .side-group-title .caret { margin-left: auto; color: var(--text-4); transition: transform .2s; }
+  .side-sub { display: block; }
+  .side-item {
+    height: 40px; padding: 0 20px 0 44px; display: flex; align-items: center;
+    color: var(--text-5); cursor: pointer; font-size: 14px;
+  }
+  .side-item:hover { background: var(--bg); color: var(--text-6); }
+  .side-item.is-active { background: var(--brand-1); color: var(--brand-6); font-weight: 600; }
+
+  .app-content { flex: 1; min-width: 0; padding: 16px 24px 32px; }
+
+  /* [面包屑] */
+  .breadcrumb { display: flex; align-items: center; gap: 8px; color: var(--text-5); font-size: 14px; margin-bottom: 16px; }
+  .breadcrumb .back { cursor: pointer; color: var(--text-5); }
+  .breadcrumb .sep { color: var(--text-3); }
+  .breadcrumb .cur { color: var(--text-6); }
+
+  /* 白色内容容器 */
+  .panel { background: var(--white); border-radius: var(--radius-card); padding: 20px 24px; }
+
+  /* [页头] page-header：标题 + 操作按钮组 */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .page-header .actions { display: flex; align-items: center; gap: 12px; }
+
+  /* [KPI 卡] kpi-card */
+  .kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px; }
+  .kpi-card { background: var(--bg); border-radius: var(--radius-card); padding: 16px 20px; }
+  .kpi-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .kpi-title { color: var(--text-5); font-size: 14px; }
+  .kpi-value { font-size: 14px; color: var(--text-6); font-weight: 600; }
+  .kpi-value b { color: var(--brand-6); font-size: 16px; }
+  .progress { height: 8px; background: var(--line-1); border-radius: var(--radius-full); overflow: hidden; }
+  .progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--brand-6), var(--brand-5)); border-radius: var(--radius-full); }
+
+  /* [筛选面板] filter-panel */
+  .filter-panel { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .field-label { color: var(--text-6); font-size: 14px; }
+  .input {
+    height: 32px; padding: 0 12px; border: 1px solid var(--line-3); border-radius: var(--radius-ctrl);
+    font-family: var(--font); font-size: 14px; color: var(--text-6); background: var(--white); width: 200px;
+  }
+  .input::placeholder { color: var(--text-3); }
+  .input:focus { outline: none; border-color: var(--brand-6); }
+  .filter-panel .spacer { flex: 1; }
+
+  /* [数据表] data-table */
+  .table-wrap { position: relative; min-height: 360px; }
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 20px; }
+  .data-table thead th {
+    background: var(--fill-2); color: var(--text-5); font-weight: 400; text-align: left;
+    padding: 10px 12px; white-space: nowrap; position: sticky; top: 0;
+  }
+  .data-table thead th:first-child { border-top-left-radius: 6px; }
+  .data-table thead th:last-child { border-top-right-radius: 6px; }
+  .data-table tbody td { padding: 12px; border-bottom: 1px solid var(--line-2); color: var(--text-6); white-space: nowrap; }
+  .data-table tbody tr:hover { background: var(--row-hover); }
+  .cell-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+  .col-ops { display: flex; gap: 12px; }
+
+  /* [状态标签] status-tag */
+  .status-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
+  .status-tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+  .status-tag--running { color: var(--success-5); }
+  .status-tag--running::before { background: var(--success-5); }
+  .status-tag--offline { color: var(--text-4); }
+  .status-tag--offline::before { background: var(--text-4); }
+
+  /* [分页] pagination */
+  .pagination { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  .page-btn {
+    min-width: 32px; height: 32px; padding: 0 6px; border: 1px solid var(--line-3); border-radius: var(--radius-ctrl);
+    background: var(--white); color: var(--text-6); font-size: 13px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .page-btn:hover { border-color: var(--brand-5); color: var(--brand-6); }
+  .page-btn.is-active { background: var(--brand-6); border-color: var(--brand-6); color: #fff; }
+
+  /* [空状态 / 加载状态 / 错误状态] 表格三态占位 */
+  .state-block { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: var(--white); }
+  .state-block.is-show { display: flex; }
+  .state-illus { width: 96px; height: 72px; border-radius: 8px; background: var(--fill-2); display: flex; align-items: center; justify-content: center; color: var(--text-3); font-size: 12px; }
+  .state-block .state-text { color: var(--text-4); font-size: 14px; }
+  .loading-state .spinner { width: 28px; height: 28px; border-width: 3px; color: var(--brand-6); }
+
+  /* ============================================================
+     [弹窗] dialog · dialog-mask（创建 PK 实验）
+     ============================================================ */
+  .dialog-mask {
+    position: fixed; inset: 0; background: var(--mask);
+    display: none; align-items: center; justify-content: center; z-index: 100;
+    overflow-y: auto; padding: 24px 0; /* 居中；视口较矮时可滚动，保证内容可达 */
+  }
+  .dialog-mask.is-open { display: flex; }
+  .dialog {
+    width: 800px; height: 540px; margin: auto; background: var(--white);
+    border-radius: var(--radius-card); box-shadow: var(--shadow-upper); overflow: hidden;
+    display: flex; flex-direction: column; /* 固定 800×540，各状态高度统一；margin:auto 在遮罩内严格居中 */
+  }
+  /* 入场淡入（仅 opacity，避免任何位移影响居中）；开启时才触发，保证每次打开都重新播放 */
+  .dialog-mask.is-open .dialog { animation: dlg-in .18s ease; }
+  @keyframes dlg-in { from { opacity: 0; } to { opacity: 1; } }
+
+  .dialog-header { height: 48px; flex: none; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+  .dialog-header .title { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--text-6); }
+  .dialog-close { width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-4); font-size: 16px; }
+  .dialog-close:hover { background: var(--fill-2); color: var(--text-6); }
+
+  /* 内容区占满剩余高度；内容不足时留白、超出时内部滚动，保证弹窗固定 540 高 */
+  .dialog-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 24px 24px; display: flex; flex-direction: column; }
+
+  /* [品牌介绍条] intro-banner */
+  .intro-banner { background: var(--brand-1); border-radius: var(--radius-card); padding: 20px 24px; margin-bottom: 24px; }
+  .intro-banner .b-title { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--text-6); margin-bottom: 6px; }
+  .intro-banner .b-desc { font-size: 14px; color: var(--text-5); }
+
+  /* [表单项] form-item：80px 标签列 */
+  .form-item { display: flex; align-items: flex-start; min-height: 32px; margin-bottom: 20px; }
+  .form-item:last-child { margin-bottom: 0; }
+  .form-label { width: 80px; flex: none; padding-top: 5px; color: var(--text-6); font-size: 14px; }
+  .form-label.required::before { content: "*"; color: var(--error-5); margin-right: 4px; }
+  .form-control { flex: 1; min-width: 0; }
+  .plain-text { padding-top: 5px; color: var(--text-6); }
+
+  /* [日期区间] date-range（只读展示，评审用；替换位置：接入真实日期区间选择器） */
+  .date-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .date-range {
+    width: 360px; height: 32px; border: 1px solid var(--line-3); border-radius: var(--radius-ctrl);
+    display: flex; align-items: center; padding: 0 10px; gap: 6px; color: var(--text-6); font-size: 14px; background: var(--white); cursor: pointer;
+  }
+  .date-range:hover { border-color: var(--brand-5); }
+  .date-range .sep { color: var(--text-3); }
+  .date-range .cal-icon { margin-left: auto; color: var(--text-4); }
+  .date-tip { color: var(--text-4); font-size: 14px; }
+
+  /* [实验条件] 检测按钮 + 结果 */
+  .detect-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .detect-result-text { color: var(--text-5); font-size: 14px; }
+  /* 通过态：绿色“已通过检测”胶囊 */
+  .btn-pass {
+    height: 32px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px;
+    background: var(--success-1); color: var(--success-5); border-radius: var(--radius-ctrl); font-size: 14px; border: 1px solid transparent;
+  }
+
+  /* [条件清单] condition-list */
+  .condition-list { }
+  .condition-list .list-title { color: var(--text-5); font-size: 12px; line-height: 18px; margin-bottom: 12px; }
+  .condition-item { display: flex; align-items: center; gap: 8px; min-height: 20px; margin-bottom: 8px; font-size: 14px; color: var(--text-6); }
+  .condition-item:last-child { margin-bottom: 0; }
+  .cond-icon { width: 14px; height: 14px; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+  .cond-icon.neutral { color: var(--text-3); }
+  .cond-icon.ok { color: var(--success-5); }
+  .cond-icon.warn { color: var(--warning-5); }
+  .cond-icon .spinner { width: 12px; height: 12px; border-width: 2px; color: var(--brand-6); }
+  .cond-extra { color: var(--text-4); font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
+  .cond-divider { color: var(--line-3); }
+  .conclusion { font-size: 14px; font-weight: 600; color: var(--text-6); margin-top: 16px; }
+
+  /* [弹窗底部] dialog-footer */
+  /* 底部按钮吸底（margin-top:auto 把它推到内容区底部） */
+  .dialog-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: auto; padding-top: 24px; }
+
+  /* [成功页] success-panel（创建成功后替换弹窗体） */
+  /* 成功页替换表单体，同样占满剩余高度，保持弹窗 540 固定高 */
+  .success-panel { display: none; flex: 1; min-height: 0; overflow-y: auto; flex-direction: column; padding: 8px 24px 24px; text-align: center; }
+  .success-panel.is-show { display: flex; }
+  .success-illus { width: 120px; height: 120px; margin: 24px auto 20px; position: relative; }
+  .success-illus .card {
+    width: 100%; height: 100%; border-radius: 16px;
+    background: linear-gradient(135deg, var(--brand-2), var(--brand-1));
+    display: flex; align-items: center; justify-content: center; color: var(--brand-6); font-size: 12px;
+  }
+  .success-illus .badge {
+    position: absolute; right: -4px; bottom: -4px; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--success-5); color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; border: 3px solid var(--white);
+  }
+  .success-panel .s-main { font-size: 14px; color: var(--text-6); margin-bottom: 8px; }
+  .success-panel .s-sub { font-size: 13px; color: var(--text-5); margin-bottom: 4px; }
+  .success-panel .dialog-footer { margin-top: auto; }
+
+  /* 主色描边按钮（提报商品 / 调整预算） */
+  .btn--outline-brand { background: var(--white); color: var(--brand-6); border-color: var(--brand-6); }
+  .btn--outline-brand:hover { color: var(--brand-5); border-color: var(--brand-5); }
+
+  /* ============================================================
+     [抽屉] 查看 PK 效果 drawer-mask + drawer（右侧滑入，还原 Figma 效果抽屉）
+     ============================================================ */
+  .drawer-mask {
+    position: fixed; inset: 0; background: var(--mask);
+    display: none; justify-content: flex-end; z-index: 110;
+  }
+  .drawer-mask.is-open { display: flex; }
+  .drawer {
+    width: 900px; max-width: 92vw; height: 100%; background: var(--white);
+    box-shadow: var(--shadow-upper); display: flex; flex-direction: column; overflow: hidden;
+    animation: drawer-in .25s ease;
+  }
+  @keyframes drawer-in { from { transform: translateX(100%); } to { transform: none; } }
+
+  /* 标题栏 48px（无分割线） */
+  .drawer-header { flex: none; height: 48px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+  .drawer-header .title { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--text-6); }
+  .drawer-close { width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-4); font-size: 16px; }
+  .drawer-close:hover { background: var(--fill-2); color: var(--text-6); }
+
+  /* 选择实验行 52px：左=选择实验下拉，右=创建PK实验(仅已结束态)；底部内缩24分割线 */
+  .drawer-toolbar { flex: none; position: relative; height: 52px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .drawer-toolbar::after { content: ""; position: absolute; left: 24px; right: 24px; bottom: 0; height: 1px; background: var(--line-2); }
+  .exp-select { display: flex; align-items: center; gap: 8px; }
+  .exp-select .label { color: var(--text-6); font-size: 14px; }
+  .select-box {
+    min-width: 360px; height: 32px; border: 1px solid var(--line-3); border-radius: var(--radius-ctrl);
+    display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--text-6); font-size: 14px; cursor: pointer;
+  }
+  .select-box:hover { border-color: var(--brand-5); }
+  .select-box .caret { margin-left: auto; color: var(--text-4); }
+
+  /* 抽屉体（可滚动） */
+  .drawer-body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 24px 32px; }
+
+  /* 状态行（内容区首行）：状态标签 + 统计周期 + 右侧管理操作(进行中态) */
+  .drawer-statusbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+  .drawer-statusbar .left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .drawer-statusbar .right, .drawer-toolbar .right { display: flex; align-items: center; gap: 8px; flex: none; }
+  .pk-tag { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 8px; font-size: 12px; line-height: 18px; font-weight: 600; flex: none; }
+  .pk-tag--brand { background: var(--brand-1); color: var(--brand-6); }
+  .pk-tag--gray  { background: var(--bg); color: var(--text-5); }
+  .pk-period { color: var(--text-4); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pk-section { margin-bottom: 24px; }
+  .pk-section:last-child { margin-bottom: 0; }
+  .pk-section-title { font-size: 14px; line-height: 22px; font-weight: 600; color: var(--text-6); margin-bottom: 12px; display: flex; align-items: baseline; gap: 8px; }
+  .pk-section-title .hint { font-size: 12px; font-weight: 400; color: var(--text-5); }
+
+  /* PK 实验结论横幅：16 圆角 + 浅紫渐变 #FAF5FF→#F3F4FF */
+  .conclusion-banner { background: linear-gradient(191deg, #FAF5FF 33%, #F3F4FF 67%); border-radius: 16px; padding: 16px 20px; }
+  .conclusion-banner .c-title { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--text-6); margin-bottom: 2px; }
+  .conclusion-banner .c-desc { font-size: 14px; line-height: 22px; color: var(--text-6); }
+
+  /* 亮点洞察 / 核心洞察：卡片满行左对齐，flex-1 max200，8间距，6圆角 */
+  .insight-cards { display: flex; gap: 8px; align-items: center; }
+  .insight-card { flex: 1 1 0; max-width: 200px; min-width: 0; height: 48px; border: 1px solid var(--line-2); border-radius: 6px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .insight-card .k { color: var(--text-6); font-size: 14px; white-space: nowrap; }
+  .insight-card .v { font-family: "Avenir", var(--font); font-size: 16px; font-weight: 800; display: inline-flex; align-items: center; }
+  /* delta 模式：正向对比 = 功能色/上升 #F6445D + ↑ */
+  .insight-card .v.up { color: var(--error-5); }
+  .insight-card .v.up::after { content: "↑"; margin-left: 4px; }
+  /* abs 模式：实验组绝对值 = 黑色 #222 + ↓（不稳定/负向） */
+  .insight-card .v.abs { color: var(--text-6); }
+  .insight-card .v.abs::after { content: "↓"; margin-left: 4px; color: var(--text-4); }
+
+  /* 详细数据表 */
+  table.pk-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .pk-table thead th { background: var(--fill-2); color: var(--text-5); font-weight: 400; text-align: left; padding: 10px 16px; white-space: nowrap; }
+  .pk-table thead th:first-child { border-top-left-radius: 6px; }
+  .pk-table thead th:last-child { border-top-right-radius: 6px; }
+  .pk-table thead th.num, .pk-table tbody td.num { text-align: right; }
+  .pk-table thead th .info { color: var(--text-3); margin-left: 2px; cursor: help; }
+  .pk-table tbody td { padding: 14px 16px; border-bottom: 1px solid var(--line-2); color: var(--text-6); }
+  .pk-table tbody tr:last-child td { border-bottom: none; }
+  .pk-table .row-label { color: var(--text-6); }
+  .pk-table .diff.up td { color: var(--data-increase); }
+  .pk-table .diff.down td { color: var(--data-decrease); }
+  .pk-table .diff .row-label { color: var(--text-6); font-weight: 600; }
+
+  /* 未开始空状态 */
+  .pk-empty { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 24px; }
+  .pk-empty.is-show { display: flex; }
+  .pk-empty .illus { width: 120px; height: 120px; border-radius: 20px; background: linear-gradient(135deg, var(--brand-2), var(--brand-1)); display: flex; align-items: center; justify-content: center; color: var(--brand-6); font-size: 12px; margin-bottom: 24px; }
+  .pk-empty .e-main { font-size: 14px; color: var(--text-6); margin-bottom: 8px; }
+  .pk-empty .e-sub { font-size: 13px; color: var(--text-4); }
+  .pk-data { display: none; }
+  .pk-data.is-show { display: block; }
+
+  /* ============================================================
+     [Toast] 轻提示（创建失败 / 通用占位提示）
+     ============================================================ */
+  .toast-wrap { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .toast {
+    display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: var(--radius-ctrl);
+    background: var(--white); box-shadow: var(--shadow-upper); font-size: 14px; color: var(--text-6);
+    animation: toast-in .2s ease;
+  }
+  .toast .dot { width: 16px; height: 16px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; flex: none; }
+  .toast--error .dot { background: var(--error-5); }
+  .toast--success .dot { background: var(--success-5); }
+  .toast--info .dot { background: var(--brand-6); }
+  @keyframes toast-in { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* ============================================================
+     [演示控制面板] demo-panel —— 原型专用，接入真实数据后可整段删除
+     ============================================================ */
+  .demo-panel { position: fixed; right: 16px; bottom: 16px; z-index: 300; width: 240px; background: var(--white); border: 1px solid var(--line-2); border-radius: var(--radius-card); box-shadow: var(--shadow-mid); font-size: 13px; overflow: hidden; }
+  .demo-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--fill-2); cursor: pointer; }
+  .demo-head b { font-size: 13px; color: var(--text-6); }
+  .demo-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+  .demo-panel.is-collapsed .demo-body { display: none; }
+  .demo-group > label { display: block; color: var(--text-5); margin-bottom: 6px; }
+  .demo-seg { display: flex; border: 1px solid var(--line-3); border-radius: var(--radius-ctrl); overflow: hidden; }
+  .demo-seg button { flex: 1; border: none; background: var(--white); padding: 5px 4px; font-size: 12px; cursor: pointer; color: var(--text-5); font-family: var(--font); }
+  .demo-seg button + button { border-left: 1px solid var(--line-3); }
+  .demo-seg button.is-on { background: var(--brand-1); color: var(--brand-6); font-weight: 600; }
+  .demo-select { width: 100%; height: 28px; border: 1px solid var(--line-3); border-radius: var(--radius-ctrl); font-size: 12px; color: var(--text-6); padding: 0 6px; font-family: var(--font); background: var(--white); cursor: pointer; }
+  /* 演示控制两层导航：场景 tab / 分流视图 / 返回 */
+  .demo-view { display: flex; flex-direction: column; gap: 12px; }
+  .demo-tab { text-align: left; border: 1px solid var(--line-3); border-radius: var(--radius-ctrl); background: var(--white); padding: 8px 10px; margin-top: 6px; cursor: pointer; font-family: var(--font); font-size: 13px; color: var(--text-6); display: flex; flex-direction: column; gap: 2px; }
+  .demo-tab:hover { border-color: var(--brand-5); background: var(--brand-1); }
+  .demo-tab .sub { font-size: 11px; color: var(--text-4); font-weight: 400; }
+  .demo-back { color: var(--brand-6); font-size: 12px; cursor: pointer; align-self: flex-start; }
+  .demo-back:hover { color: var(--brand-5); }
+  .demo-scene-title { font-size: 12px; font-weight: 600; color: var(--text-6); }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     [顶部导航] app-topbar：品牌行 + 一级导航行（总高 112px）
+     ============================================================ -->
+<header class="app-topbar">
+  <div class="topbar-brand">
+    <!-- 替换位置：品牌 logo 占位块 -->
+    <div class="brand-logo"><span class="placeholder"></span>中台数据中心</div>
+    <div class="topbar-right">
+      <!-- 交互：纯展示占位，点击无实际跳转 -->
+      <span class="cell"><span class="cell-icon"></span>供应商看板</span>
+      <!-- 消息中心带红点未读角标 -->
+      <span class="cell cell--badge"><span class="cell-icon"></span>消息中心</span>
+      <span class="topbar-divider"></span>
+      <span class="cell">Admin ▾</span>
+    </div>
+  </div>
+  <nav class="topbar-nav">
+    <span class="nav-item">工作台</span>
+    <span class="nav-item">经营数据</span>
+    <span class="nav-item">货品运营</span>
+    <span class="nav-item is-active">用户运营</span>
+    <span class="nav-item">活动运营</span>
+    <span class="nav-item">场景运营</span>
+    <span class="nav-item">用户体验</span>
+    <span class="nav-item">下载中心</span>
+  </nav>
+</header>
+
+<div class="app-body">
+
+  <!-- ============================================================
+       [左侧导航] app-sidebar：品牌用户 > 策略中心（选中）
+       ============================================================ -->
+  <aside class="app-sidebar">
+    <div class="side-group">
+      <div class="side-group-title"><span class="icon-box">◈</span>平台用户 <span class="caret">▾</span></div>
+    </div>
+    <div class="side-group">
+      <div class="side-group-title"><span class="icon-box">◈</span>行业用户 <span class="caret">▾</span></div>
+    </div>
+    <div class="side-group">
+      <div class="side-group-title"><span class="icon-box">◈</span>品牌用户 <span class="caret" style="transform:rotate(180deg)">▾</span></div>
+      <div class="side-sub">
+        <div class="side-item">用户总览</div>
+        <div class="side-item">用户画像</div>
+        <div class="side-item">人群管理</div>
+        <div class="side-item">获客专题</div>
+        <div class="side-item">复购专题</div>
+        <!-- 当前所在菜单 -->
+        <div class="side-item is-active">策略中心</div>
+        <div class="side-item">沉流专题</div>
+        <div class="side-item">策略效果</div>
+        <div class="side-item">精准运营管理</div>
+        <div class="side-item">策略活动管理</div>
+      </div>
+    </div>
+    <div class="side-group">
+      <div class="side-group-title"><span class="icon-box">◈</span>运营规则 <span class="caret">▾</span></div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       [内容区] app-content
+       ============================================================ -->
+  <main class="app-content">
+
+    <!-- [面包屑] -->
+    <div class="breadcrumb">
+      <!-- 交互：点击返回上一级（原型内不跳转） -->
+      <span class="back">← 策略中心</span>
+      <span class="sep">/</span>
+      <span class="cur">智能优惠</span>
+    </div>
+
+    <div class="panel">
+      <!-- [页头] 标题 + 操作按钮组（一个操作区仅一个主按钮） -->
+      <div class="page-header">
+        <h1 class="t-title-1">活动管理</h1>
+        <div class="actions">
+          <button class="btn btn--default">☲ 核销提示设置</button>
+          <button class="btn btn--default">◷ 预算设置</button>
+          <!-- [PK入口按钮] 初始态(从未创建实验)=「＋创建PK实验」→开创建弹窗；
+               常规态(已有实验)=「★PK实验效果」→带参唤起抽屉、展示最新实验效果。
+               标签与行为由 JS updateEntryButton() 控制。 -->
+          <!-- 交互：初始态→打开创建弹窗；常规态→打开效果抽屉 -->
+          <button class="btn btn--default" id="btnOpenDialog">＋ 创建PK实验</button>
+          <button class="btn btn--primary">＋ 创建智能优惠</button>
+        </div>
+      </div>
+
+      <!-- [KPI 卡] 近7日累计核销 / 品牌销售额占比 -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-head">
+            <span class="kpi-title">近7日累计核销</span>
+            <span class="kpi-value"><b>120,000</b> / 1,000,000 元</span>
+          </div>
+          <div class="progress"><span style="width:12%"></span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-head">
+            <span class="kpi-title">近7日品牌销售额占比</span>
+            <span class="kpi-value"><b>13.3</b> / 30.0 %</span>
+          </div>
+          <div class="progress"><span style="width:44%"></span></div>
+        </div>
+      </div>
+
+      <!-- [筛选面板] filter-panel -->
+      <div class="filter-panel">
+        <span class="field-label">活动名称</span>
+        <input class="input" id="filterName" placeholder="请输入">
+        <!-- 交互：点击「查询」→表格进入加载态→按 demo 设定返回 正常/空/错误 -->
+        <button class="btn btn--primary" id="btnQuery">查询</button>
+        <!-- 交互：点击「重置」→清空筛选并恢复正常表格 -->
+        <button class="btn btn--filled" id="btnReset">重置</button>
+        <span class="spacer"></span>
+        <button class="btn btn--default">⭳ 批量导出活动效果</button>
+      </div>
+
+      <!-- [数据表] data-table -->
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:36px"><input type="checkbox"></th>
+              <th>活动ID</th>
+              <th>活动名称</th>
+              <th>活动成本(元)</th>
+              <th>销售额(元)</th>
+              <th>客户数</th>
+              <th>订单数</th>
+              <th>平均ROI</th>
+              <th>创建商品数</th>
+              <th>活动状态</th>
+              <th>生效时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <!-- 表体由 JS 渲染（正常态数据）；空/加载/错误态见下方 state-block -->
+          <tbody id="tableBody"></tbody>
+        </table>
+
+        <!-- [加载状态] loading-state -->
+        <div class="state-block loading-state" id="stateLoading">
+          <span class="spinner"></span>
+          <span class="state-text">数据加载中…</span>
+        </div>
+        <!-- [空状态] empty-state -->
+        <div class="state-block empty-state" id="stateEmpty">
+          <!-- 替换位置：空数据插画 -->
+          <div class="state-illus">暂无数据</div>
+          <span class="state-text">没有符合条件的活动，试试调整筛选条件</span>
+        </div>
+        <!-- [错误状态] error-state -->
+        <div class="state-block error-state" id="stateError">
+          <!-- 替换位置：错误插画 -->
+          <div class="state-illus">加载失败</div>
+          <span class="state-text">数据加载失败，请重试</span>
+          <!-- 交互：点击「重新加载」→重新查询 -->
+          <button class="btn btn--default" id="btnRetry">重新加载</button>
+        </div>
+      </div>
+
+      <!-- [分页] pagination -->
+      <div class="pagination">
+        <button class="page-btn">‹</button>
+        <button class="page-btn is-active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">4</button>
+        <button class="page-btn">5</button>
+        <button class="page-btn">6</button>
+        <button class="page-btn">7</button>
+        <button class="page-btn">›</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<!-- ============================================================
+     [弹窗] 创建 PK 实验（dialog-mask + dialog）
+     初始 / 检测中 / 通过 / 失败 / 创建成功 五态
+     ============================================================ -->
+<div class="dialog-mask" id="dialogMask">
+  <div class="dialog" role="dialog" aria-modal="true" aria-label="创建PK实验">
+
+    <!-- [弹窗标题] dialog-header -->
+    <div class="dialog-header">
+      <span class="title">创建PK实验</span>
+      <!-- 交互：点击关闭弹窗并复位到初始态 -->
+      <span class="dialog-close" id="btnCloseDialog">✕</span>
+    </div>
+
+    <!-- ===== 弹窗主体（表单 + 检测流程）===== -->
+    <div class="dialog-body" id="dialogFormBody">
+
+      <!-- [品牌介绍条] intro-banner -->
+      <div class="intro-banner">
+        <div class="b-title">智能优惠实验效果PK</div>
+        <div class="b-desc">对来访人群随机分组，通过智能派券组与不派券组对比，评估优惠效果 ｜ 仅受邀品牌可创建</div>
+      </div>
+
+      <!-- [表单项1] 实验方式（纯文本） -->
+      <div class="form-item">
+        <div class="form-label">实验方式</div>
+        <div class="form-control"><div class="plain-text">智能派券组 PK 不派券组</div></div>
+      </div>
+
+      <!-- [表单项2] 实验时间（必填，日期区间） -->
+      <div class="form-item">
+        <div class="form-label required">实验时间</div>
+        <div class="form-control">
+          <div class="date-row">
+            <!-- 交互：点击选择实验起止时间（原型为只读展示）。替换位置：接入日期区间选择器 -->
+            <div class="date-range" id="dateRange" title="点击选择日期（原型仅展示）">
+              <span>2026-06-15 00:00:00</span>
+              <span class="sep">~</span>
+              <span>2026-06-29 23:59:59</span>
+              <!-- 日期时间选择器尾部时钟图标（替换位置：接入 time/date 图标） -->
+              <span class="cal-icon">◷</span>
+            </div>
+            <span class="date-tip">建议选择6.15 ~ 6.29，实验流量更稳定</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- [表单项3] 实验条件（检测流程；设计稿初始态该标签无必填星号） -->
+      <div class="form-item">
+        <div class="form-label">实验条件</div>
+        <div class="form-control">
+
+          <!-- 检测按钮行：随状态在 检测/检测中/已通过/重新检测 间切换 -->
+          <div class="detect-row">
+            <!-- 交互：点击「检测」→按钮 loading + 条件逐项 loading → 通过/失败 -->
+            <button class="btn btn--primary" id="btnDetect">检测是否符合条件</button>
+            <!-- 通过/失败态显示：已检测到商品数 -->
+            <span class="detect-result-text" id="detectResultText" hidden>
+              已检测到创建智能优惠的商品有 <b>102</b> 款 <span class="link">去查看 ›</span>
+            </span>
+          </div>
+
+          <!-- [条件清单] condition-list -->
+          <div class="condition-list">
+            <div class="list-title">创建实验需满足以下条件</div>
+
+            <!-- 条件项1：智能优惠商品覆盖占比 -->
+            <div class="condition-item" data-cond="1">
+              <span class="cond-icon neutral">✓</span>
+              <span class="cond-text">智能优惠商品覆盖占比 ≥ 20%</span>
+              <!-- 失败态附加：仍需提报商品 -->
+              <span class="cond-extra" hidden>
+                <span class="cond-divider">｜</span>仍需提报 4 款商品 <span class="link">去提报 ›</span>
+              </span>
+            </div>
+
+            <!-- 条件项2：预算占比品牌销售额 -->
+            <div class="condition-item" data-cond="2">
+              <span class="cond-icon neutral">✓</span>
+              <span class="cond-text">预算占比品牌销售额 ≥ 20%</span>
+              <span class="cond-extra" hidden>
+                <span class="cond-divider">｜</span>预算设置未满足 <span class="link">去调整 ›</span>
+              </span>
+            </div>
+
+            <!-- 条件项3：实验周期 -->
+            <div class="condition-item" data-cond="3">
+              <span class="cond-icon neutral">✓</span>
+              <span class="cond-text">实验周期 7-14 天</span>
+            </div>
+
+            <!-- 结论行：通过/失败展示不同文案 -->
+            <div class="conclusion" id="conclusion" hidden></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- [弹窗底部] dialog-footer —— 仅「通过检测」后出现 -->
+      <div class="dialog-footer" id="dialogFooter" hidden>
+        <!-- 交互：取消→关闭弹窗 -->
+        <button class="btn btn--default" id="btnCancel">取消</button>
+        <!-- 交互：创建→提交中→成功页 / 失败 toast（按 demo 设定） -->
+        <button class="btn btn--primary" id="btnCreate">创建</button>
+      </div>
+    </div>
+
+    <!-- ===== [成功页] success-panel（创建成功后替换主体）===== -->
+    <div class="success-panel" id="successPanel">
+      <!-- 替换位置：成功插画 -->
+      <div class="success-illus">
+        <div class="card">插画占位</div>
+        <div class="badge">✓</div>
+      </div>
+      <div class="s-main">你已成功创建PK实验，当前你可以 <span class="link">提报更多商品</span> 商品越多数据越准</div>
+      <div class="s-sub">请耐心等待实验开始，实验1天后可查看效果数据</div>
+      <div class="s-sub">实验时间: 2026-06-15 00:00:00 ～ 2026-06-29 23:59:59</div>
+      <div class="dialog-footer">
+        <!-- 交互：提报商品→占位提示 toast -->
+        <button class="btn btn--default" id="btnReport">提报商品</button>
+        <!-- 交互：完成→关闭弹窗 -->
+        <button class="btn btn--primary" id="btnFinish">完成</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ============================================================
+     [抽屉] 查看 PK 效果（drawer-mask + drawer），从右侧滑入
+     状态：实验未开始 / 实验进行中 / 实验已结束
+     ============================================================ -->
+<div class="drawer-mask" id="drawerMask">
+  <aside class="drawer" role="dialog" aria-modal="true" aria-label="智能优惠PK实验效果">
+
+    <!-- [抽屉标题] -->
+    <div class="drawer-header">
+      <span class="title">智能优惠PK实验效果</span>
+      <!-- 交互：点击关闭抽屉 -->
+      <span class="drawer-close" id="btnCloseDrawer">✕</span>
+    </div>
+
+    <!-- [选择实验行] 左=选择实验下拉；右=创建PK实验（仅无进行中/待开始实验时出现） -->
+    <div class="drawer-toolbar">
+      <div class="exp-select">
+        <span class="label">选择实验</span>
+        <!-- 交互：点击选择实验（原型占位提示） -->
+        <div class="select-box" id="pkExpSelect">
+          <span>2026-06-15 00:00:00 ～ 2026-06-29 23:59:59</span>
+          <span class="caret">▾</span>
+        </div>
+      </div>
+      <!-- 已结束/无活跃实验：创建新 PK 实验入口 -->
+      <div class="right" id="pkActionsCreate" hidden>
+        <!-- 交互：实验结束后创建新的 PK 实验 -->
+        <button class="btn btn--primary" id="btnPkCreateNew">＋ 创建PK实验</button>
+      </div>
+    </div>
+
+    <!-- [抽屉体] 随状态切换：空状态 / 数据 -->
+    <div class="drawer-body">
+
+      <!-- [状态行] 状态标签 + 统计周期 + 右侧管理操作（进行中态） -->
+      <div class="drawer-statusbar">
+        <div class="left">
+          <!-- 状态标签随 PK 状态切换 -->
+          <span class="pk-tag pk-tag--brand" id="pkStatusTag">实验进行中</span>
+          <span class="pk-period" id="pkPeriod">数据统计周期：2026-06-15 至今（2026-06-28）</span>
+        </div>
+        <!-- 进行中：提报商品/调整预算/终止实验 -->
+        <div class="right" id="pkActionsManage">
+          <!-- 交互：提报商品 / 调整预算 / 终止实验（原型占位提示） -->
+          <button class="btn btn--outline-brand" id="btnPkReport">提报商品</button>
+          <button class="btn btn--outline-brand" id="btnPkBudget">调整预算</button>
+          <button class="btn btn--default" id="btnPkStop">终止实验</button>
+        </div>
+      </div>
+
+      <!-- 未开始：空状态 -->
+      <div class="pk-empty" id="pkEmpty">
+        <!-- 替换位置：等待中插画 -->
+        <div class="illus">插画占位</div>
+        <div class="e-main">请耐心等待实验开始，实验1天后可查看效果数据</div>
+        <div class="e-sub">当前仍可以 <span class="link">提报更多商品</span> 商品越多数据越准</div>
+      </div>
+
+      <!-- 进行中 / 已结束：数据 -->
+      <div class="pk-data" id="pkData">
+
+        <!-- [PK实验结论] -->
+        <section class="pk-section">
+          <div class="pk-section-title">PK实验结论 <span class="hint">实验数据受到多个因素影响，数据仅供参考</span></div>
+          <div class="conclusion-banner" id="pkConclusion">
+            <div class="c-title">效果突出，可继续放大智能优惠投入</div>
+            <div class="c-desc">实验周期 6.15 至今，同一盘货品下，智能派券组整体表现优于不派券组，核心转化指标提升明显，建议继续扩大高潜商品覆盖。</div>
+          </div>
+        </section>
+
+        <!-- [亮点洞察 / 核心洞察] 标题(+PK对比说明) 与 卡片，由 JS 按结论语气渲染 -->
+        <section class="pk-section">
+          <div class="pk-section-title"><span id="pkInsightTitle">亮点洞察</span><span class="hint" id="pkInsightHint">智能优惠派券 PK 不派券</span></div>
+          <!-- 卡片由 setPkState → renderPkData 注入 -->
+          <div class="insight-cards" id="pkInsightCards"></div>
+        </section>
+
+        <!-- [详细数据] 实验组 / 对照组 / 差异（表体由 JS 按结论语气渲染） -->
+        <section class="pk-section">
+          <div class="pk-section-title">详细数据</div>
+          <table class="pk-table">
+            <thead>
+              <tr>
+                <th>实验组/对照组</th>
+                <th class="num">曝光转化率<span class="info">ⓘ</span></th>
+                <th class="num">成交客户数<span class="info">ⓘ</span></th>
+                <th class="num">成交订单数<span class="info">ⓘ</span></th>
+                <th class="num">销售额<span class="info">ⓘ</span></th>
+                <th class="num">ROI<span class="info">ⓘ</span></th>
+              </tr>
+            </thead>
+            <tbody id="pkTableBody"></tbody>
+          </table>
+        </section>
+      </div>
+    </div>
+  </aside>
+</div>
+
+
+<!-- [Toast 容器] 全局轻提示 -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+
+<!-- ============================================================
+     [演示控制面板] demo-panel —— 仅供评审切换互斥分支，接入真实数据后可整段删除
+     ============================================================ -->
+<div class="demo-panel" id="demoPanel">
+  <div class="demo-head" id="demoHead"><b>▷ 演示控制</b><span id="demoToggle">收起</span></div>
+  <div class="demo-body">
+
+    <!-- 第一层：选择演示场景 -->
+    <!-- 交互：点击某场景 → 设置入口态并进入对应分流 -->
+    <div class="demo-view" id="demoTabView">
+      <div class="demo-group">
+        <label>① 选择演示场景</label>
+        <button class="demo-tab" data-tab="init">初始状态<span class="sub">从未创建实验 · 页头「＋创建PK实验」</span></button>
+        <button class="demo-tab" data-tab="normal">已有创建过活动<span class="sub">已有实验 · 页头「★PK实验效果」</span></button>
+      </div>
+    </div>
+
+    <!-- 第二层A：初始状态 → 创建实验分流 -->
+    <div class="demo-view" id="demoInitView" hidden>
+      <!-- 交互：返回第一层场景选择 -->
+      <div class="demo-back" data-back>← 返回场景</div>
+      <div class="demo-scene-title">初始状态 · 创建实验</div>
+      <div class="demo-group">
+        <label>检测结果</label>
+        <div class="demo-seg" data-seg="detect">
+          <button data-val="pass" class="is-on">通过</button>
+          <button data-val="fail">失败</button>
+        </div>
+      </div>
+      <div class="demo-group">
+        <label>创建结果</label>
+        <div class="demo-seg" data-seg="create">
+          <button data-val="success" class="is-on">成功</button>
+          <button data-val="fail">失败 (toast)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第二层B：已有创建过活动 → PK效果分流 -->
+    <div class="demo-view" id="demoNormalView" hidden>
+      <!-- 交互：返回第一层场景选择 -->
+      <div class="demo-back" data-back>← 返回场景</div>
+      <div class="demo-scene-title">已有活动 · PK实验效果</div>
+      <div class="demo-group">
+        <label>PK效果（点页头“★PK实验效果”生效）</label>
+        <select class="demo-select" id="demoPkSelect">
+          <option value="notStarted">未开始（无数据）</option>
+          <option value="runningNoData">进行中·实验≤1天（无数据）</option>
+          <option value="endedNoData">≤1天终止（无数据）</option>
+          <option value="runningData" selected>进行中·实验&gt;1天（有数据）</option>
+          <option value="endedUp">已结束·有数据（效果突出）</option>
+          <option value="endedFlat">已结束·有数据（基本持平）</option>
+          <option value="endedUnstable">已结束·有数据（暂不稳定）</option>
+        </select>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+/* ============================================================
+   原型交互脚本（原生 JS，仅模拟必要交互，不做业务逻辑）
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* ---- 演示分支状态（由 demo-panel 控制）----
+     entry: 入口态。init=从未创建实验(页头显示「＋创建PK实验」)；normal=已有实验(页头显示「★PK实验效果」)
+     全局仅支持同时存在一个实验：故有活跃实验时只能查看效果，无法再次创建。 */
+  var demo = { detect: 'pass', create: 'success', pk: 'runningData', entry: 'init' };
+
+  /* ---- PK 效果生命周期状态配置 ----
+     无数据(≤1天)：未开始 / 进行中 / 终止 → 显示空态；有数据(>1天)：进行中 / 已结束 → 显示数据
+     action: manage=提报/调整/终止；create=创建新PK实验（实验已结束/终止后） */
+  var PK_STATES = {
+    notStarted:    { tag: '实验未开始', tagType: 'brand', period: '实验1天后开始统计数据', hasData: false, action: 'manage' },
+    runningNoData: { tag: '实验进行中', tagType: 'brand', period: '实验1天后开始统计数据', hasData: false, action: 'manage' },
+    endedNoData:   { tag: '实验已结束', tagType: 'gray',  period: '实验已终止，未产生有效统计数据', hasData: false, action: 'create' },
+    runningData:   { tag: '实验进行中', tagType: 'brand', period: '数据统计周期：2026-06-15 至今（2026-06-28）', hasData: true, action: 'manage', tone: 'up' },
+    endedUp:       { tag: '实验已结束', tagType: 'gray',  period: '数据统计周期：2026-06-15 至 2026-06-29　实验数据受到多个因素影响，数据仅供参考', hasData: true, action: 'create', tone: 'up' },
+    endedFlat:     { tag: '实验已结束', tagType: 'gray',  period: '数据统计周期：2026-06-15 至 2026-06-29　实验数据受到多个因素影响，数据仅供参考', hasData: true, action: 'create', tone: 'flat' },
+    endedUnstable: { tag: '实验已结束', tagType: 'gray',  period: '数据统计周期：2026-06-15 至 2026-06-29　实验数据受到多个因素影响，数据仅供参考', hasData: true, action: 'create', tone: 'down' }
+  };
+
+  /* ---- 三种结论语气（还原 8076/8077 效果节点）----
+     up 突出 / flat 持平：亮点洞察 + “智能优惠派券 PK 不派券”，卡片=对比增幅(红↑ delta)
+     down 暂不稳定：核心洞察（无PK说明），卡片=实验组绝对值(黑↓ abs) */
+  var PK_DATA = {
+    up: {
+      conclTitle: '效果突出，可继续放大智能优惠投入',
+      conclDesc: '实验周期 6.15 至今，同一盘货品下，智能派券组整体表现优于不派券组，核心转化指标提升明显，建议继续扩大高潜商品覆盖。',
+      sectionTitle: '亮点洞察', sectionHint: '智能优惠派券 PK 不派券', cardMode: 'delta', tableDir: 'up',
+      insights: [['曝光转化率', '+13.4%'], ['成交客户数', '+13.4%'], ['ROI', '+13.4%']],
+      exp:  ['14.3 %', '2,087', '3,213', '12.34 万', '3.1'],
+      ctrl: ['11.8 %', '1,890', '2,837', '7.34 万', '2.4'],
+      diff: ['+22.5 %', '+19.5 %', '+26.8 %', '+42.2 %', '+17.5 %']
+    },
+    flat: {
+      conclTitle: '效果基本持平，建议优化后继续验证',
+      conclDesc: '实验周期 6.7 至今，同一盘货品下，智能派券组与不派券组整体表现接近，当前未体现明显优势。建议优化提报商品数量、优惠预算或活动周期后，再次进行 PK 验证。',
+      sectionTitle: '亮点洞察', sectionHint: '智能优惠派券 PK 不派券', cardMode: 'delta', tableDir: 'up',
+      insights: [['曝光转化率', '+1.2%'], ['成交客户数', '+0.8%'], ['ROI', '+0.5%']],
+      exp:  ['12.1 %', '1,980', '2,910', '8.10 万', '2.6'],
+      ctrl: ['11.8 %', '1,960', '2,860', '7.90 万', '2.5'],
+      diff: ['+2.5 %', '+1.0 %', '+1.7 %', '+2.5 %', '+0.4 %']
+    },
+    down: {
+      conclTitle: '数据暂不稳定，建议扩大样本后再判断',
+      conclDesc: '实验周期 6.7 至今，受流量波动或样本量不足影响，当前指标波动较大，暂不建议直接判断智能派券效果。建议增加提报商品数量，并选择流量更稳定的时间段再次进行 PK。',
+      sectionTitle: '核心洞察', sectionHint: '', cardMode: 'abs', tableDir: 'down',
+      insights: [['实验组曝光转化率', '25.4%'], ['实验组ROI', '1.6']],
+      exp:  ['25.4 %', '1,760', '2,540', '6.20 万', '1.6'],
+      ctrl: ['28.0 %', '1,980', '2,910', '7.80 万', '1.9'],
+      diff: ['-9.3 %', '-11.1 %', '-12.7 %', '-20.5 %', '-15.8 %']
+    }
+  };
+
+  /* ---- 模拟表格数据 ---- */
+  var ROWS = Array.from({ length: 11 }).map(function (_, i) {
+    return {
+      id: '1032983',
+      name: i === 0 ? '618智能优惠' : (i === 1 ? '618智能优惠，提升…' : '这是一段文本描述传…'),
+      cost: '129,000', sales: '362.67 万', customers: 147, orders: 147,
+      roi: 147, goods: 147,
+      status: i === 1 ? 'offline' : 'running',
+      time: i === 0 ? '长期有效' : '2023-11-01 10:00:00'
+    };
+  });
+
+  /* ---- DOM 快捷方式 ---- */
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ============================================================
+     [Toast] 通用轻提示
+     ============================================================ */
+  function toast(type, msg) {
+    var icon = type === 'error' ? '✕' : (type === 'success' ? '✓' : 'i');
+    var el = document.createElement('div');
+    el.className = 'toast toast--' + type;
+    el.innerHTML = '<span class="dot">' + icon + '</span><span>' + msg + '</span>';
+    $('toastWrap').appendChild(el);
+    setTimeout(function () {
+      el.style.transition = 'opacity .3s'; el.style.opacity = '0';
+      setTimeout(function () { el.remove(); }, 300);
+    }, 2600);
+  }
+
+  /* ============================================================
+     [表格渲染] 正常态
+     ============================================================ */
+  function renderTable() {
+    var html = ROWS.map(function (r) {
+      var tag = r.status === 'running'
+        ? '<span class="status-tag status-tag--running">进行中</span>'
+        : '<span class="status-tag status-tag--offline">已下线</span>';
+      // 注：此“效果”为活动效果，与 PK 实验效果无关，不唤起 PK 抽屉
+      var ops = r.status === 'running'
+        ? '<span class="link">效果</span><span class="link">编辑</span><span class="link link--danger">下线</span>'
+        : '<span class="link">效果</span><span class="link">编辑</span>';
+      return '<tr>' +
+        '<td><input type="checkbox"></td>' +
+        '<td>' + r.id + '</td>' +
+        '<td class="cell-name">' + r.name + '</td>' +
+        '<td>' + r.cost + '</td>' +
+        '<td>' + r.sales + '</td>' +
+        '<td>' + r.customers + '</td>' +
+        '<td>' + r.orders + '</td>' +
+        '<td>' + r.roi + '</td>' +
+        '<td>' + r.goods + '</td>' +
+        '<td>' + tag + '</td>' +
+        '<td>' + r.time + '</td>' +
+        '<td><div class="col-ops">' + ops + '</div></td>' +
+        '</tr>';
+    }).join('');
+    $('tableBody').innerHTML = html;
+  }
+
+  /* 切换表格四态：normal / loading / empty / error */
+  function setTableState(state) {
+    $('stateLoading').classList.toggle('is-show', state === 'loading');
+    $('stateEmpty').classList.toggle('is-show', state === 'empty');
+    $('stateError').classList.toggle('is-show', state === 'error');
+    $('tableBody').style.visibility = (state === 'normal') ? 'visible' : 'hidden';
+  }
+
+  /* [交互] 查询：进入加载态 → 返回正常结果。
+     注：空/错误态仍保留在页面中（见 #stateEmpty / #stateError），
+     如需演示可调用 setTableState('empty') 或 setTableState('error')。 */
+  function doQuery() {
+    var btn = $('btnQuery');
+    setBtnLoading(btn, true, '查询中');
+    setTableState('loading');
+    setTimeout(function () {
+      setBtnLoading(btn, false, '查询');
+      setTableState('normal');
+    }, 900);
+  }
+
+  /* ============================================================
+     [按钮 loading 态] 前置转圈 + 禁用防重复提交
+     ============================================================ */
+  function setBtnLoading(btn, loading, text) {
+    if (loading) {
+      btn.dataset.text = btn.textContent;
+      btn.classList.add('is-disabled');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>' + (text || btn.dataset.text);
+    } else {
+      btn.classList.remove('is-disabled');
+      btn.disabled = false;
+      btn.textContent = text || btn.dataset.text;
+    }
+  }
+
+  /* ============================================================
+     [弹窗] 打开 / 关闭 / 复位
+     ============================================================ */
+  var mask = null;
+
+  function openDialog() { resetDialog(); $('dialogMask').classList.add('is-open'); }
+  function closeDialog() { $('dialogMask').classList.remove('is-open'); }
+
+  /* 复位到「初始态」：清空检测结果、隐藏底部按钮、条件回中性 */
+  function resetDialog() {
+    $('dialogFormBody').style.display = '';
+    $('successPanel').classList.remove('is-show');
+
+    var btn = $('btnDetect');
+    btn.className = 'btn btn--primary';
+    btn.disabled = false;
+    btn.innerHTML = '检测是否符合条件';
+
+    $('detectResultText').hidden = true;
+    $('dialogFooter').hidden = true;
+    $('conclusion').hidden = true;
+
+    // 条件项复位为中性灰勾、隐藏附加说明
+    document.querySelectorAll('.condition-item').forEach(function (item) {
+      var icon = item.querySelector('.cond-icon');
+      icon.className = 'cond-icon neutral';
+      icon.textContent = '✓';
+      var extra = item.querySelector('.cond-extra');
+      if (extra) extra.hidden = true;
+    });
+  }
+
+  /* ============================================================
+     [检测流程] 点击检测 → 逐项 loading → 通过/失败
+     ============================================================ */
+  function doDetect() {
+    var btn = $('btnDetect');
+    setBtnLoading(btn, true, '检测中');
+    $('detectResultText').hidden = true;
+    $('dialogFooter').hidden = true;
+    $('conclusion').hidden = true;
+
+    var items = Array.prototype.slice.call(document.querySelectorAll('.condition-item'));
+    // 先全部置为 loading 图标
+    items.forEach(function (item) {
+      var icon = item.querySelector('.cond-icon');
+      icon.className = 'cond-icon';
+      icon.innerHTML = '<span class="spinner"></span>';
+      var extra = item.querySelector('.cond-extra');
+      if (extra) extra.hidden = true;
+    });
+
+    // 逐项结算（串行 setTimeout 模拟“逐项 loading 检查”）
+    items.forEach(function (item, idx) {
+      setTimeout(function () { settleItem(item, idx); }, 500 * (idx + 1));
+    });
+
+    // 全部结算后收尾
+    setTimeout(function () { finishDetect(btn); }, 500 * (items.length + 1));
+  }
+
+  /* 单条条件结算：根据 demo.detect 决定该条通过/告警 */
+  function settleItem(item, idx) {
+    var icon = item.querySelector('.cond-icon');
+    var extra = item.querySelector('.cond-extra');
+    // 失败分支：前两条告警，第三条通过；通过分支：全部通过
+    var isWarn = (demo.detect === 'fail') && (idx === 0 || idx === 1);
+    if (isWarn) {
+      icon.className = 'cond-icon warn';
+      icon.textContent = '!';
+      if (extra) extra.hidden = false;
+    } else {
+      icon.className = 'cond-icon ok';
+      icon.textContent = '✓';
+      if (extra) extra.hidden = true;
+    }
+  }
+
+  /* 检测收尾：切换按钮形态 + 结论文案 + 底部按钮 */
+  function finishDetect(btn) {
+    $('detectResultText').hidden = false;
+    var conclusion = $('conclusion');
+
+    if (demo.detect === 'pass') {
+      // 通过态：绿色“已通过检测”胶囊
+      btn.outerHTML = '<span class="btn-pass" id="btnDetect">✓ 已通过检测</span>';
+      conclusion.hidden = false;
+      conclusion.textContent = '您的品牌已满足所有创建实验条件，立即创建智能优化实验效果，眼见为实！';
+      $('dialogFooter').hidden = false; // 出现 取消 / 创建
+    } else {
+      // 失败态：按钮变“重新检测”，无创建按钮
+      btn.className = 'btn btn--primary';
+      btn.disabled = false;
+      btn.innerHTML = '重新检测是否符合条件';
+      conclusion.hidden = false;
+      conclusion.textContent = '你的品牌暂不满足实验条件，请调整后重新检测';
+      $('dialogFooter').hidden = true;
+    }
+    bindDetectBtn(); // 重新绑定（outerHTML 会替换节点）
+  }
+
+  /* ============================================================
+     [创建提交] 通过态点击创建 → 提交中 → 成功页 / 失败 toast
+     ============================================================ */
+  function doCreate() {
+    var btn = $('btnCreate');
+    setBtnLoading(btn, true, '创建中');
+    setTimeout(function () {
+      setBtnLoading(btn, false, '创建');
+      if (demo.create === 'success') {
+        // 成功：切换到成功页
+        $('dialogFormBody').style.display = 'none';
+        $('successPanel').classList.add('is-show');
+        // 全局仅一个实验：创建成功后进入常规态，页头按钮切为「★PK实验效果」，最新实验=待开始(未开始)
+        demo.entry = 'normal'; updateEntryButton();
+        demo.pk = 'notStarted'; $('demoPkSelect').value = 'notStarted';
+        showDemoView('normal'); // 演示面板自动进入「已有活动」分流
+      } else {
+        // 失败：弹 error toast，弹窗停留在通过态
+        toast('error', '创建失败，请稍后重试');
+      }
+    }, 1000);
+  }
+
+  /* ============================================================
+     [抽屉] 查看 PK 效果：打开 / 关闭 / 切换状态
+     ============================================================ */
+  function openDrawer() { setPkState(demo.pk); $('drawerMask').classList.add('is-open'); }
+  function closeDrawer() { $('drawerMask').classList.remove('is-open'); }
+
+  /* 页头 PK 入口按钮：初始态=创建入口；常规态=效果入口 */
+  function updateEntryButton() {
+    $('btnOpenDialog').innerHTML = (demo.entry === 'normal') ? '★ PK实验效果' : '＋ 创建PK实验';
+  }
+
+  /* 根据 PK 生命周期状态渲染抽屉：标签 / 周期 / 操作按钮 / 空态或数据 */
+  function setPkState(key) {
+    var s = PK_STATES[key] || PK_STATES.runningData;
+    var tag = $('pkStatusTag');
+    tag.className = 'pk-tag ' + (s.tagType === 'gray' ? 'pk-tag--gray' : 'pk-tag--brand');
+    tag.textContent = s.tag;
+    $('pkPeriod').textContent = s.period;
+    // 右侧操作：manage(提报/调整/终止) 或 create(创建新PK实验)
+    $('pkActionsManage').hidden = (s.action !== 'manage');
+    $('pkActionsCreate').hidden = (s.action !== 'create');
+    // 空态 vs 数据
+    if (s.hasData) {
+      $('pkEmpty').classList.remove('is-show');
+      $('pkData').classList.add('is-show');
+      renderPkData(s.tone);
+    } else {
+      $('pkEmpty').classList.add('is-show');
+      $('pkData').classList.remove('is-show');
+    }
+  }
+
+  /* 按结论语气渲染：结论文案 + 洞察标题/说明 + 洞察卡 + 详细数据表 */
+  function renderPkData(tone) {
+    var d = PK_DATA[tone] || PK_DATA.up;
+    $('pkConclusion').querySelector('.c-title').textContent = d.conclTitle;
+    $('pkConclusion').querySelector('.c-desc').textContent = d.conclDesc;
+    $('pkInsightTitle').textContent = d.sectionTitle;
+    // PK对比说明：突出/持平显示“智能优惠派券 PK 不派券”，负向(核心洞察)不显示
+    var hint = $('pkInsightHint');
+    hint.textContent = d.sectionHint;
+    hint.hidden = !d.sectionHint;
+
+    // 洞察卡：delta=对比增幅(红↑)，abs=实验组绝对值(黑↓)
+    var vClass = (d.cardMode === 'abs') ? 'abs' : 'up';
+    $('pkInsightCards').innerHTML = d.insights.map(function (it) {
+      return '<div class="insight-card"><span class="k">' + it[0] + '</span><span class="v ' + vClass + '">' + it[1] + '</span></div>';
+    }).join('');
+
+    function row(label, vals, extraClass) {
+      return '<tr class="' + (extraClass || '') + '"><td class="row-label">' + label + '</td>' +
+        vals.map(function (v) { return '<td class="num">' + v + '</td>'; }).join('') + '</tr>';
+    }
+    $('pkTableBody').innerHTML =
+      row('智能派券组', d.exp) +
+      row('不派券组', d.ctrl) +
+      row('差异', d.diff, 'diff ' + d.tableDir);
+  }
+
+  /* ============================================================
+     [事件绑定]
+     ============================================================ */
+  function bindDetectBtn() {
+    var b = $('btnDetect');
+    if (b) b.onclick = doDetect;
+  }
+
+  function bindEvents() {
+    // 页头 PK 入口：常规态(有实验)→打开效果抽屉展示最新实验；初始态(无实验)→打开创建弹窗
+    $('btnOpenDialog').onclick = function () {
+      if (demo.entry === 'normal') openDrawer();
+      else openDialog();
+    };
+    // 关闭
+    $('btnCloseDialog').onclick = closeDialog;
+    // 点击遮罩空白处关闭
+    $('dialogMask').addEventListener('click', function (e) {
+      if (e.target === $('dialogMask')) closeDialog();
+    });
+    // 检测
+    bindDetectBtn();
+    // 底部：取消 / 创建
+    $('btnCancel').onclick = closeDialog;
+    $('btnCreate').onclick = doCreate;
+    // 成功页：完成 / 提报商品
+    $('btnFinish').onclick = closeDialog;
+    $('btnReport').onclick = function () { toast('info', '已进入商品提报流程（原型占位）'); };
+    // 日期区间（原型占位提示）
+    $('dateRange').onclick = function () { toast('info', '日期区间选择为原型占位，接入组件后可选择'); };
+
+    // 筛选：查询 / 重置 / 重试
+    $('btnQuery').onclick = doQuery;
+    $('btnReset').onclick = function () {
+      $('filterName').value = '';
+      setTableState('normal');
+      toast('info', '已重置筛选条件');
+    };
+    $('btnRetry').onclick = doQuery;
+
+    // 抽屉：关闭 / 遮罩空白关闭
+    $('btnCloseDrawer').onclick = closeDrawer;
+    $('drawerMask').addEventListener('click', function (e) {
+      if (e.target === $('drawerMask')) closeDrawer();
+    });
+    // 抽屉操作按钮（原型占位提示）
+    $('btnPkReport').onclick = function () { toast('info', '已进入商品提报流程（原型占位）'); };
+    $('btnPkBudget').onclick = function () { toast('info', '打开预算调整（原型占位）'); };
+    $('btnPkStop').onclick = function () { toast('info', '终止实验（原型占位，正式环境需二次确认）'); };
+    $('btnPkCreateNew').onclick = function () { closeDrawer(); openDialog(); };
+    $('pkExpSelect').onclick = function () { toast('info', '选择实验为原型占位'); };
+    // 演示控制：PK 效果状态下拉（抽屉打开时实时预览）
+    $('demoPkSelect').onchange = function () {
+      demo.pk = this.value;
+      if ($('drawerMask').classList.contains('is-open')) setPkState(demo.pk);
+    };
+
+    // ESC 关闭弹窗 / 抽屉
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { closeDialog(); closeDrawer(); }
+    });
+
+    bindDemoPanel();
+  }
+
+  /* ============================================================
+     [演示控制面板] 切换互斥分支（原型专用）
+     ============================================================ */
+  function setDemoSeg(seg, val) {
+    demo[seg] = val;
+    document.querySelectorAll('.demo-seg[data-seg="' + seg + '"] button').forEach(function (b) {
+      b.classList.toggle('is-on', b.dataset.val === val);
+    });
+  }
+  /* 演示控制两层导航：tab(场景选择) / init(创建分流) / normal(效果分流) */
+  function showDemoView(name) {
+    $('demoTabView').hidden = (name !== 'tab');
+    $('demoInitView').hidden = (name !== 'init');
+    $('demoNormalView').hidden = (name !== 'normal');
+  }
+
+  function bindDemoPanel() {
+    document.querySelectorAll('.demo-seg').forEach(function (seg) {
+      var key = seg.dataset.seg;
+      seg.querySelectorAll('button').forEach(function (b) {
+        b.onclick = function () { setDemoSeg(key, b.dataset.val); };
+      });
+    });
+    // 第一层：选择场景 → 设置入口态并进入对应分流
+    document.querySelectorAll('.demo-tab').forEach(function (t) {
+      t.onclick = function () {
+        demo.entry = t.dataset.tab; // init / normal
+        updateEntryButton();
+        showDemoView(t.dataset.tab);
+      };
+    });
+    // 返回第一层场景选择（可回退）
+    document.querySelectorAll('[data-back]').forEach(function (b) {
+      b.onclick = function () { showDemoView('tab'); };
+    });
+    // 折叠/展开
+    $('demoHead').onclick = function () {
+      var p = $('demoPanel');
+      p.classList.toggle('is-collapsed');
+      $('demoToggle').textContent = p.classList.contains('is-collapsed') ? '展开' : '收起';
+    };
+  }
+
+  /* ---- 初始化 ---- */
+  renderTable();
+  setTableState('normal');
+  bindEvents();
+  updateEntryButton(); // 初始化页头 PK 入口按钮文案
+  showDemoView('tab'); // 演示控制默认停在第一层场景选择
+})();
+</script>
+
+</body>
+</html>
