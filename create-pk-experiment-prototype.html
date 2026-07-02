@@ -429,6 +429,13 @@
 
   /* 抽屉体（可滚动） */
   .drawer-body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 24px 32px; }
+  .drawer-loading {
+    min-height: 476px; width: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    color: var(--text-4); font-size: 14px; line-height: 22px;
+  }
+  .drawer-loading .spinner { width: 28px; height: 28px; border-width: 3px; color: var(--brand-6); }
+  .drawer-content { width: 100%; }
 
   /* 状态行（内容区首行）：状态标签 + 统计周期 + 右侧管理操作(进行中态) */
   .drawer-statusbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
@@ -872,8 +879,13 @@
     </div>
 
     <!-- [抽屉体] 随状态切换：空状态 / 数据 -->
-    <div class="drawer-body">
+    <div class="drawer-body" id="drawerBody">
+      <div class="drawer-loading" id="drawerLoading" hidden>
+        <span class="spinner"></span>
+        <span>数据加载中...</span>
+      </div>
 
+      <div class="drawer-content" id="drawerContent">
       <!-- [状态行] 状态标签 + 统计周期 + 右侧管理操作（进行中态） -->
       <div class="drawer-statusbar">
         <div class="left">
@@ -933,6 +945,7 @@
             <tbody id="pkTableBody"></tbody>
           </table>
         </section>
+      </div>
       </div>
     </div>
   </aside>
@@ -1015,6 +1028,7 @@
      entry: 入口态。init=从未创建实验(页头显示「＋创建PK实验」)；normal=已有实验(页头显示「★PK实验效果」)
      全局仅支持同时存在一个实验：故有活跃实验时只能查看效果，无法再次创建。 */
   var demo = { detect: 'pass', create: 'success', pk: 'runningData', entry: 'init' };
+  var drawerLoadTimer = null;
 
   /* ---- PK 效果生命周期状态配置 ----
      无数据(≤1天)：未开始 / 进行中 / 终止 → 显示空态；有数据(>1天)：进行中 / 已结束 → 显示数据
@@ -1286,8 +1300,30 @@
   /* ============================================================
      [抽屉] 查看 PK 效果：打开 / 关闭 / 切换状态
      ============================================================ */
-  function openDrawer() { setPkState(demo.pk); $('drawerMask').classList.add('is-open'); }
-  function closeDrawer() { $('drawerMask').classList.remove('is-open'); }
+  function setDrawerLoading(isLoading) {
+    $('drawerLoading').hidden = !isLoading;
+    $('drawerContent').hidden = isLoading;
+    if (isLoading) $('pkActionsCreate').hidden = true;
+  }
+
+  function openDrawer() {
+    clearTimeout(drawerLoadTimer);
+    $('drawerMask').classList.add('is-open');
+    $('drawerBody').scrollTop = 0;
+    setDrawerLoading(true);
+    drawerLoadTimer = setTimeout(function () {
+      setPkState(demo.pk);
+      setDrawerLoading(false);
+      drawerLoadTimer = null;
+    }, 300);
+  }
+
+  function closeDrawer() {
+    clearTimeout(drawerLoadTimer);
+    drawerLoadTimer = null;
+    $('drawerMask').classList.remove('is-open');
+    setDrawerLoading(false);
+  }
 
   /* 页头 PK 入口按钮：初始态=创建入口；常规态=效果入口 */
   function updateEntryButton() {
