@@ -276,7 +276,7 @@
   .dialog-mask.is-open { display: flex; }
   .dialog {
     width: 800px; height: 540px; margin: auto; background: var(--white);
-    border-radius: var(--radius-card); box-shadow: var(--shadow-upper); overflow: hidden;
+    border-radius: 6px; box-shadow: var(--shadow-upper); overflow: hidden;
     display: flex; flex-direction: column; /* 固定 800×540，各状态高度统一；margin:auto 在遮罩内严格居中 */
   }
   /* 入场淡入（仅 opacity，避免任何位移影响居中）；开启时才触发，保证每次打开都重新播放 */
@@ -285,7 +285,17 @@
 
   .dialog-header { height: 48px; flex: none; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
   .dialog-header .title { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--text-6); }
-  .dialog-close { width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-4); font-size: 16px; }
+  .dialog-close {
+    width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-4); font-size: 0; position: relative;
+  }
+  .dialog-close::before,
+  .dialog-close::after {
+    content: ""; width: 16px; height: 1.5px; border-radius: 1px; background: currentColor;
+    position: absolute; left: 4px; top: 11px;
+  }
+  .dialog-close::before { transform: rotate(45deg); }
+  .dialog-close::after { transform: rotate(-45deg); }
   .dialog-close:hover { background: var(--fill-2); color: var(--text-6); }
 
   /* 内容区占满剩余高度；内容不足时留白、超出时内部滚动，保证弹窗固定 540 高 */
@@ -344,22 +354,31 @@
 
   /* [成功页] success-panel（创建成功后替换弹窗体） */
   /* 成功页替换表单体，同样占满剩余高度，保持弹窗 540 固定高 */
-  .success-panel { display: none; flex: 1; min-height: 0; overflow-y: auto; flex-direction: column; padding: 8px 24px 24px; text-align: center; }
+  .success-panel {
+    display: none; flex: 1; min-height: 0; overflow: hidden; flex-direction: column;
+    padding: 8px 24px 24px; text-align: center;
+  }
   .success-panel.is-show { display: flex; }
-  .success-illus { width: 120px; height: 120px; margin: 24px auto 20px; position: relative; }
-  .success-illus .card {
-    width: 100%; height: 100%; border-radius: 16px;
-    background: linear-gradient(135deg, var(--brand-2), var(--brand-1));
-    display: flex; align-items: center; justify-content: center; color: var(--brand-6); font-size: 12px;
+  .success-content {
+    flex: 1; min-height: 0; width: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
   }
-  .success-illus .badge {
-    position: absolute; right: -4px; bottom: -4px; width: 40px; height: 40px; border-radius: 50%;
-    background: var(--success-5); color: #fff; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; border: 3px solid var(--white);
+  .success-illus { width: 119px; height: 135px; position: relative; flex: none; overflow: visible; }
+  .success-illus img {
+    position: absolute; left: 0; top: 0; width: 123px; height: 136px; display: block; max-width: none;
   }
-  .success-panel .s-main { font-size: 14px; color: var(--text-6); margin-bottom: 8px; }
-  .success-panel .s-sub { font-size: 13px; color: var(--text-5); margin-bottom: 4px; }
-  .success-panel .dialog-footer { margin-top: auto; }
+  .success-copy { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .success-panel .s-main { font-size: 14px; line-height: 22px; color: var(--text-6); margin: 0; white-space: nowrap; }
+  .success-panel .s-sub { font-size: 12px; line-height: 18px; color: var(--text-5); margin: 0; }
+  .success-panel .dialog-footer { margin-top: auto; gap: 11px; padding-top: 0; }
+  .success-panel .btn { min-width: 88px; }
+  .success-panel .btn--primary { background: #575CDE; }
+  .success-panel .btn--primary:hover { background: #797EF5; }
+
+  @media (max-width: 860px) {
+    .dialog { width: calc(100vw - 32px); }
+    .success-panel .s-main { white-space: normal; }
+  }
 
   /* 主色描边按钮（提报商品 / 调整预算） */
   .btn--outline-brand { background: var(--white); color: var(--brand-6); border-color: var(--brand-6); }
@@ -784,14 +803,18 @@
 
     <!-- ===== [成功页] success-panel（创建成功后替换主体）===== -->
     <div class="success-panel" id="successPanel">
-      <!-- 替换位置：成功插画 -->
-      <div class="success-illus">
-        <div class="card">插画占位</div>
-        <div class="badge">✓</div>
+      <div class="success-content">
+        <div class="success-illus">
+          <img src="images/other/image-tijiao.png" alt="" />
+        </div>
+        <div class="success-copy">
+          <p class="s-main">你已成功创建PK实验， 当前仍可以 <span class="link">提报更多商品</span> 商品越多数据越准</p>
+          <div>
+            <p class="s-sub">请耐心等待实验开始，实验1天后可查看效果数据</p>
+            <p class="s-sub">实验时间：2026-06-15 00:00:00&nbsp;&nbsp;~&nbsp;&nbsp;2026-06-29 23:59:59</p>
+          </div>
+        </div>
       </div>
-      <div class="s-main">你已成功创建PK实验，当前你可以 <span class="link">提报更多商品</span> 商品越多数据越准</div>
-      <div class="s-sub">请耐心等待实验开始，实验1天后可查看效果数据</div>
-      <div class="s-sub">实验时间: 2026-06-15 00:00:00 ～ 2026-06-29 23:59:59</div>
       <div class="dialog-footer">
         <!-- 交互：提报商品→占位提示 toast -->
         <button class="btn btn--default" id="btnReport">提报商品</button>
